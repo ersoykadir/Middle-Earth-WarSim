@@ -5,26 +5,32 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 using namespace std;
 
 //FIND INDEX OF GIVEN CHARACTER IN THE COMMUNITY LIST
 int findIndex(const vector<Character*>& community,string characterName);
 //PRINT OUT THE VECTOR TO GIVEN OUTSTREAM
 string printer(ostream &out,const vector<Character*> &v);
-//COMPARE 2 CHARACTER ACCORDING TO THEIR NAME
+//COMPARE 2 CHARACTER ACCORDING TO THEIR NAME, Used for sorting
 bool comparePtrToObject(Character* first,Character* second);
 //FIND GIVEN CHARACTER'S NAME AND RETURN IF ALIVE,ELSE FIND NEXT ALIVE CHARACTER;
 Character* findCharacter(const vector<Character*> &community,string name);
-Character* findLastKilled(const vector<Character*> &community,string &lastKilledName);
 //MANAGE SPECIAL SKILLS
 void specialChecks(const vector<Character*> &community,string special, Character* attacker,string &lastKilledName,bool& doubleDwarf);
 //CHECK EVERY MEMBER OF COMMUNITY ALIVE OR NOT
 bool allMembersALive(const vector<Character*> &community);
+//Update special round of every character in the community 
 void updateSpecialRounds(const vector<Character*> &community);
+//Update health history of every character in the community
 void updateHealthHistory(const vector<Character*> &community,int currentRound);
+//print health records of everybody
 void healthRecords(ostream &out,const vector<Character*> &community1,const vector<Character*> &community2,int& roundsOfWar);
+//check whether the game ending conditions satisfied or not
 bool isGameOver(const vector<Character*> &community1,const vector<Character*> &community2,int& winner);
+//swap two community's characters
 void communitySwap(vector<Character*> *&attackerCommunity,vector<Character*> *&defenderCommunity);
+
 static int currentRound = 1;
 int main(int argc, char* argv[]) {
 
@@ -199,6 +205,7 @@ bool isGameOver(const vector<Character*> &community1,const vector<Character*> &c
 		return true;
 	}
 	//If code reaches here both hobbits are alive
+	//Check if everybody except hobbit in a commmunity is dead
 	bool allDeadCommunity1 = true;
 	for(auto ch : community1){
 		if(ch->type != "Hobbit" && ch->isAlive == true) {
@@ -242,22 +249,22 @@ bool allMembersALive(const vector<Character*> &community){
 	}
 	return true;
 }
-
+//Do special skill arrangements 
 void specialChecks(const vector<Character*> &community,string special, Character* attacker,string &lastKilledName,bool &doubleDwarf){
 
 	if (special == "SPECIAL"){
 		//check character type, check cooldown, check doable or not
-		if (attacker->type == "Elves" && attacker->nRoundsSinceSpecial >= 10){
+		if (attacker->type == "Elves" && attacker->nRoundsSinceSpecial > 10){
 				Character* hobbit = findCharacter(community,"Hobbit");//if hobbit is dead code would not reach here
 				hobbit->remainingHealth += attacker->remainingHealth / 2;
 				attacker->remainingHealth -= attacker->remainingHealth/2;
 		}
-		if (attacker->type == "Dwarfs" && attacker->nRoundsSinceSpecial >= 20){
+		if (attacker->type == "Dwarfs" && attacker->nRoundsSinceSpecial > 20){
 			doubleDwarf = true;
 		}
-		if (attacker->type == "Wizards" && attacker->nRoundsSinceSpecial >= 50){
+		if (attacker->type == "Wizards" && attacker->nRoundsSinceSpecial > 50){
 			if(!allMembersALive(community) && lastKilledName != ""){
-				Character* lastKilled = findLastKilled(community,lastKilledName);
+				Character* lastKilled = community[findIndex(community,lastKilledName)];
 				if(lastKilled->isAlive == true){
 					lastKilled->remainingHealth = lastKilled->healthHistory[0];
 				}
@@ -272,12 +279,6 @@ void specialChecks(const vector<Character*> &community,string special, Character
 	}
 }
 
-Character* findLastKilled(const vector<Character*> &community,string &lastKilledName)
-{
-	for(auto ch : community){
-		if(ch->name == lastKilledName) return ch;
-	}
-}
 
 //Find index of given character name
 int findIndex(const vector<Character*>& community,string name){
@@ -307,16 +308,18 @@ bool comparePtrToObject(Character* first,Character* second){
 
 Character* findCharacter(const vector<Character*> &community,string chName)
 {
+	//find(begin,end,element);
 	if(chName == "Hobbit"){
 		int indexOfHobbit = findIndex(community,chName);
 		return community[indexOfHobbit];
 	}
-	string temp = chName;
+	//Create list of names and sort alphabetically
 	vector<string> nameList;
 	for(auto ch : community){
 		nameList.push_back(ch->name);
 	}
 	sort(nameList.begin(),nameList.end());
+	//Find index of given character name in the name list
 	int index=0;
 	for(auto nm : nameList){
 		if(nm==chName) {
@@ -324,36 +327,28 @@ Character* findCharacter(const vector<Character*> &community,string chName)
 		}
 		index++;
 	}
-	for (int i = index; i < community.size(); ++i){
-		if (nameList[i] == chName){
-			int indexOfCh = findIndex(community,chName);
-			if (community[indexOfCh] -> isAlive){
-			 	return community[indexOfCh];
+	//iterator on name list started on desired character
+	auto vectorIt = nameList.begin() + index;
+	Character *c = community[findIndex(community,(*vectorIt))];
+	//if desired character is alive return it
+	if (c->isAlive) return c;
+	else{
+		//
+		bool direction = true;//alphabetically next
+		while(vectorIt!=nameList.end()-1){
+			if(direction) {
+				vectorIt++;
+				c = community[findIndex(community,(*vectorIt))];
 			}
-			else{
-				if(i == community.size()-1){
-					break;
-				}
-				else{
-					chName = nameList[i+1];
-				}
+			else {
+				vectorIt--;
+				c = community[findIndex(community,(*vectorIt))];
 			}
-		}
-	}
-	chName = temp;
-	for (int i = index; i >= 0; i--){
-		if (nameList[i] == chName){
-			int indexOfCh = findIndex(community,chName);
-			if (community[indexOfCh] -> isAlive){
-			 	return community[indexOfCh];
-			}
-			else{
-				if(i == 0){
-					break;
-				}
-				else{
-					chName = nameList[i-1];
-				}
+			if (c->isAlive) return c;
+			if (vectorIt==nameList.end()-1 && direction){
+				direction = false;
+				vectorIt = nameList.begin() + index;
+				c = community[findIndex(community,(*vectorIt))];
 			}
 		}
 	}

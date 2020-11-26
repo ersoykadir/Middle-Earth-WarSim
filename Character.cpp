@@ -21,14 +21,14 @@ Character::Character(string _name, string _type, int _attack, int _defense, int 
 	//Health history array, first element is the starting health
 	this->healthHistory = new int[_nMaxRounds+1];
 	this->healthHistory[0] = _remainingHealth;
-	cout << "Character created" << this->name <<endl;
+	//cout << "Character created" << this->name <<endl;
 }
 
 /*
 	Copy constructor
 */
 Character::Character(const Character& character) {
-	cout << "Copy constructor is called." << endl;
+	//cout << "Copy constructor is called." << endl;
 	
 	this->name = character.name;
 	this->type = character.type;
@@ -40,6 +40,7 @@ Character::Character(const Character& character) {
 	
 	this->nRoundsSinceSpecial = character.nRoundsSinceSpecial;
 	
+	//New health history array created and the given characters history copied in it;
 	this->healthHistory = new int[character.nMaxRounds+1];
 	for (int i = 0; i < character.nMaxRounds+1; ++i)
 	{
@@ -51,12 +52,12 @@ Character::Character(const Character& character) {
 */
 Character& Character::operator=(const Character& character) {
 
-	cout << "Assinment operator called" << endl;
-	if (this == &character) {
+	//cout << "Assinment operator called" << endl;
+	if (this == &character) {//If they are the same character objects
 		return *this;
 	}
-	if (this->healthHistory != NULL) { 
-		cout << "Deleting previously used (Assignment operator)" << endl;
+	if (this->healthHistory != NULL) { //Deleting previously used health history array
+		//cout << "Deleting previously used (Assignment operator)" << endl;
 		delete[] this->healthHistory;		
 	}
 
@@ -70,6 +71,7 @@ Character& Character::operator=(const Character& character) {
 	
 	this->nRoundsSinceSpecial = character.nRoundsSinceSpecial;
 	
+	//New health history array created and the given characters history copied in it;
 	this->healthHistory = new int[character.nMaxRounds+1];
 	for (int i = 0; i < character.nMaxRounds+1; ++i)
 	{
@@ -77,7 +79,8 @@ Character& Character::operator=(const Character& character) {
 	}
 }
 /*
-	Overloading comparison operator
+	Overloading comparison operator 
+	Return true if this character's name is alphabetically comes before the other one
 */
 bool Character::operator<(const Character& other) {
 	return (this->name < other.name) ;
@@ -86,7 +89,7 @@ bool Character::operator<(const Character& other) {
 	Destructor
 */
 Character::~Character() {
-	cout << "Destructing"<< this->name << endl;
+	//cout << "Destructing"<< this->name << endl;
 	if (this->healthHistory!=NULL)
 	{
 		delete[] this->healthHistory;
