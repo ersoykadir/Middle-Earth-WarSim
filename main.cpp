@@ -308,7 +308,7 @@ bool comparePtrToObject(Character* first,Character* second){
 
 Character* findCharacter(const vector<Character*> &community,string chName)
 {
-	//find(begin,end,element);
+	
 	if(chName == "Hobbit"){
 		int indexOfHobbit = findIndex(community,chName);
 		return community[indexOfHobbit];
