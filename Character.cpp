@@ -77,6 +77,7 @@ Character& Character::operator=(const Character& character) {
 	{
 		this->healthHistory[i] = character.healthHistory[i];
 	}
+	return *this;
 }
 /*
 	Overloading comparison operator 
